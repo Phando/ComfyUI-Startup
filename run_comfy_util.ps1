@@ -78,14 +78,18 @@ if (! (Test-Path -Path $outputPath)) {
     Write-Host "Directory created: $outputPath`n"
 }
 
+$item = Get-Item -LiteralPath .\test\
+$item.Attributes -band [System.IO.FileAttributes]::ReparsePoint
+$item = Get-Item -LiteralPath .\temptest\
+$item.Attributes -band [System.IO.FileAttributes]::ReparsePoint
 
 # Make junction to models folder if needed
 if (Test-Path $junctionPath) {
     $item = Get-Item -LiteralPath $junctionPath
     if ( !($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-        Remove-Item -LiteralPath $junctionPath -Recurse -Force
-        Write-Host "Original model folder deleted."
-        New-Item -ItemType Junction -Path $junctionPath -Target $modelPath
+        Write-Host "Moving original model folder... (may take some time)"
+        Move-Item -LiteralPath "$junctionPath" -Destination "$modelPath" -Force
+        New-Item -ItemType Junction -Path "$junctionPath" -Target "$modelPath"
         Write-Host "Created models junction" -ForegroundColor Green
         Write-Host "$junctionPath --> $modelPath`n"
     }
