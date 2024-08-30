@@ -1,6 +1,6 @@
 # ComfyUI NVidia Startup - Modified
 
-$serverPort = 7869
+$serverPort = 8188
 $comfyPath = $PSScriptRoot
 $rootPath = Split-Path -Path $comfyPath -Parent
 
@@ -78,16 +78,11 @@ if (! (Test-Path -Path $outputPath)) {
     Write-Host "Directory created: $outputPath`n"
 }
 
-$item = Get-Item -LiteralPath .\test\
-$item.Attributes -band [System.IO.FileAttributes]::ReparsePoint
-$item = Get-Item -LiteralPath .\temptest\
-$item.Attributes -band [System.IO.FileAttributes]::ReparsePoint
-
 # Make junction to models folder if needed
 if (Test-Path $junctionPath) {
     $item = Get-Item -LiteralPath $junctionPath
     if ( !($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-        Write-Host "Moving original model folder... (may take some time)"
+        Write-Host "Moving original model folder... (may take some time)" -ForegroundColor Yellow
         Move-Item -LiteralPath "$junctionPath" -Destination "$modelPath" -Force
         New-Item -ItemType Junction -Path "$junctionPath" -Target "$modelPath"
         Write-Host "Created models junction" -ForegroundColor Green

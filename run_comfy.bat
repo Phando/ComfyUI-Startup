@@ -5,7 +5,7 @@ set "comfyPath=%~dp0"
 set "roothPath=%cd%"
 
 :: Define other variables
-set "serverPort=7869"
+set "serverPort=8188"
 set "inputPath=%roothPath%\input"
 set "outputPath=%roothPath%\output"
 set "pythonPath=%comfyPath%\python_embeded\python.exe"
