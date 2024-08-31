@@ -10,31 +10,35 @@ set "inputPath=%roothPath%\input"
 set "outputPath=%roothPath%\output"
 set "pythonPath=%comfyPath%\python_embeded\python.exe"
 
+set "nodePath=%comfyPath%\ComfyUI\custom_nodes"
+set "managerPath=%comfyPath%\ComfyUI\custom_nodes\ComfyUI-Manager"
+set "managerUrl=https://github.com/ltdrdata/ComfyUI-Manager.git"
+
 echo(
-echo There are two ways to start ComfyUI:
-echo 1) run_comfy.bat - normal startup
-echo 2) run_comfy_util.ps1 - resolves common erros and configuration issues
+echo Info:
+echo If you are seeing errors in your ComfyUI terminal try running: comfy_doctor.ps1
 echo(
 
 :: Check if ComfyUI-Manager directory exists; if not, clone it using git
 if not exist "%managerPath%" (
+	mkdir "%managerPath%"
     git clone %managerUrl% "%managerPath%"
     echo ComfyUI-Manager Installed
-    echo.
+    echo(
 )
 
 :: Check if input path exists; if not, create the directory
 if not exist "%inputPath%" (
     mkdir "%inputPath%"
     echo Directory created: %inputPath%
-    echo.
+    echo(
 )
 
 :: Check if output path exists; if not, create the directory
 if not exist "%outputPath%" (
     mkdir "%outputPath%"
     echo Directory created: %outputPath%
-    echo.
+    echo(
 )
 
 REM Update pip

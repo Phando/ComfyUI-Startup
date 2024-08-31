@@ -1,20 +1,4 @@
 # ComfyUI NVidia Startup - Modified
-# unzip comfy archive
-# delete run_cpu.bat and run_nvidia_gpu.bat
-# add run_comfy.bat and run_comfy_util.ps1
-# run_comfy.bat
-# shut down
-# git clone https://github.com/ltdrdata/ComfyUI-Manager.git
-# git clone https://github.com/christian-byrne/python-interpreter-node.git
-# run_comfy.bat
-# Drop Complex Workflow
-# use manager to install missing nodes
-# manually use manager to install kjnodes
-# shut down
-# run_comfy.bat
-# shut down
-# run_comfy_util.bat
-# 
 
 $serverPort = 7869
 $comfyPath = $PSScriptRoot
@@ -30,9 +14,20 @@ $pythonScriptsPath = "$comfyPath\python_embeded\Scripts"
 
 $managerUrl = "https://github.com/ltdrdata/ComfyUI-Manager.git"
 
-Write-Host "`nThere are two ways to start ComfyUI:" -ForegroundColor Yellow
-Write-Host "1) run_comfy.bat - normal startup" -ForegroundColor Yellow
-Write-Host "2) run_comfy_util.ps1 - resolves common erros and configuration issues`n`n" -ForegroundColor Yellow
+function TestCreate {
+    param (
+        [string]$Path # Path to test and create if missing
+    )
+
+    if (-not (Test-Path -Path $Path)) {
+        New-Item -Path "$Path" -ItemType Directory
+        Write-Host "Directory created: $Path"
+        return $false
+    } else {
+        Write-Host "Found: $Path"
+        return $true
+    }
+}
 
 # FFmpeg 
 function InstallFFMpeg {
@@ -72,30 +67,15 @@ function InstallFFMpeg {
     Write-Host "FFmpeg essentials have been successfully placed in $destinationPath`n" -ForegroundColor Green
 }
 
+# Moodel Directory Junction
+function HandleModelsLink {
+    if (!(Test-Path $junctionPath)) {
+        New-Item -ItemType Junction -Path $junctionPath -Target $modelPath
+        Write-Host "Created models link"
+        Write-Host "$junctionPath --> $modelPath`n"
+        return
+    }
 
-# Install the ComfyUI-Manager if needed
-$managerPath = "$nodePath\ComfyUI-Manager"
-if (! (Test-Path $managerPath)) {
-    git clone $managerUrl $managerPath
-    Write-Host "ComfyUI-Manager Installed`n"
-}
-
-
-# Create the input path it not available
-if (! (Test-Path -Path $inputPath)) {
-    New-Item -Path $inputPath -ItemType Directory
-    Write-Host "Directory created: $inputPath`n"
-}
-
-
-# Create the output path it not available
-if (! (Test-Path -Path $outputPath)) {
-    New-Item -Path $outputPath -ItemType Directory
-    Write-Host "Directory created: $outputPath`n"
-}
-
-# Make junction to models folder if needed
-if (Test-Path $junctionPath) {
     $item = Get-Item -LiteralPath $junctionPath
     if ( !($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
         do {
@@ -120,11 +100,19 @@ if (Test-Path $junctionPath) {
             }
         } while ($true) 
     }
-} else {
-    New-Item -ItemType Junction -Path $junctionPath -Target $modelPath
-    Write-Host "Created models link"
-    Write-Host "$junctionPath --> $modelPath`n"
 }
+
+# Install the ComfyUI-Manager if needed
+$managerPath = "$nodePath\ComfyUI-Manager"
+if (! (TestCreate -Path $managerPath)) {
+    git clone $managerUrl $managerPath
+    Write-Host "ComfyUI-Manager Installed`n"
+}
+
+# Create paths ifneeded
+TestCreate -Path $inputPath
+TestCreate -Path $outputPath
+HandleModelsJunction
 
 # Make junction to ComfyLiterals folder if needed
 $literalsJSPath = "$comfyPath\ComfyUI\custom_nodes\ComfyLiterals\js"
@@ -182,10 +170,16 @@ if ($null -eq $currentValue -or $currentValue -eq "") {
 & $pythonPath -m pip install --upgrade pip
 
 # Start ComfyUI
-& $pythonPath -s ComfyUI\main.py --windows-standalone-build `
-  --disable-auto-launch --highvram --listen `
-  --input-directory "$inputPath" `
-  --output-directory "$outputPath" `
-  --port $serverPort
+$response = Read-Host "`nStart ComfyUI Server? (Y/n)"
 
-Read-Host "Press any key to continue . . ."
+if ($response -eq 'Y' -or $response -eq 'y' -or $response -eq '') {
+    & $pythonPath -s ComfyUI\main.py --windows-standalone-build `
+    --disable-auto-launch --highvram --listen `
+    --input-directory "$inputPath" `
+    --output-directory "$outputPath" `
+    --port $serverPort
+
+    Read-Host "Press any key to continue . . ."
+    break
+}
+
