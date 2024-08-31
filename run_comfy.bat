@@ -46,7 +46,7 @@ REM Update pip
 
 REM Start ComfyUI
 %pythonPath% -s ComfyUI\main.py --windows-standalone-build ^
-    --disable-auto-launch --disable-metadata --highvram --listen ^
+    --disable-auto-launch --highvram --listen ^
     --input-directory "%inputPath%" ^
     --output-directory "%outputPath%" ^
     --port "%serverPort%"

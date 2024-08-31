@@ -68,7 +68,7 @@ function InstallFFMpeg {
 }
 
 # Moodel Directory Junction
-function HandleModelsLink {
+function HandleModelLink {
     if (!(Test-Path $junctionPath)) {
         New-Item -ItemType Junction -Path $junctionPath -Target $modelPath
         Write-Host "Created models link"
@@ -112,7 +112,7 @@ if (! (TestCreate -Path $managerPath)) {
 # Create paths ifneeded
 TestCreate -Path $inputPath
 TestCreate -Path $outputPath
-HandleModelsJunction
+HandleModelLink
 
 # Make junction to ComfyLiterals folder if needed
 $literalsJSPath = "$comfyPath\ComfyUI\custom_nodes\ComfyLiterals\js"
@@ -168,18 +168,3 @@ if ($null -eq $currentValue -or $currentValue -eq "") {
 
 # Update pip
 & $pythonPath -m pip install --upgrade pip
-
-# Start ComfyUI
-$response = Read-Host "`nStart ComfyUI Server? (Y/n)"
-
-if ($response -eq 'Y' -or $response -eq 'y' -or $response -eq '') {
-    & $pythonPath -s ComfyUI\main.py --windows-standalone-build `
-    --disable-auto-launch --highvram --listen `
-    --input-directory "$inputPath" `
-    --output-directory "$outputPath" `
-    --port $serverPort
-
-    Read-Host "Press any key to continue . . ."
-    break
-}
-
