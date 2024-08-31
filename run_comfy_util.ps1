@@ -1,6 +1,22 @@
 # ComfyUI NVidia Startup - Modified
+# unzip comfy archive
+# delete run_cpu.bat and run_nvidia_gpu.bat
+# add run_comfy.bat and run_comfy_util.ps1
+# run_comfy.bat
+# shut down
+# git clone https://github.com/ltdrdata/ComfyUI-Manager.git
+# git clone https://github.com/christian-byrne/python-interpreter-node.git
+# run_comfy.bat
+# Drop Complex Workflow
+# use manager to install missing nodes
+# manually use manager to install kjnodes
+# shut down
+# run_comfy.bat
+# shut down
+# run_comfy_util.bat
+# 
 
-$serverPort = 8188
+$serverPort = 7869
 $comfyPath = $PSScriptRoot
 $rootPath = Split-Path -Path $comfyPath -Parent
 
@@ -82,15 +98,31 @@ if (! (Test-Path -Path $outputPath)) {
 if (Test-Path $junctionPath) {
     $item = Get-Item -LiteralPath $junctionPath
     if ( !($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) {
-        Write-Host "Moving original model folder... (may take some time)" -ForegroundColor Yellow
-        Move-Item -LiteralPath "$junctionPath" -Destination "$modelPath" -Force
-        New-Item -ItemType Junction -Path "$junctionPath" -Target "$modelPath"
-        Write-Host "Created models junction" -ForegroundColor Green
-        Write-Host "$junctionPath --> $modelPath`n"
+        do {
+            Write-Host "`nModel folder found in $junctionPath" -ForegroundColor Yellow
+            Write-Host "Move your original models folder to $modelPath prior to answering YES." -ForegroundColor Red
+            Write-Host "Would you like to delete the existing model folder and replace it with a link to $modelPath"
+            $response = Read-Host "Do you want to proceed? (Y/n)"
+            
+            if ($response -eq 'Y' -or $response -eq 'y' -or $response -eq '') {
+                Remove-Item -LiteralPath "$junctionPath" -Recurse -Force
+                New-Item -ItemType Junction -Path "$junctionPath" -Target "$modelPath"
+                Write-Host "Created models link" -ForegroundColor Green
+                Write-Host "$junctionPath --> $modelPath`n"
+                break
+            }
+            elseif ($response -eq 'N' -or $response -eq 'n') {
+                Write-Host "Skipping model link"
+                break
+            }
+            else {
+                Write-Host "Please enter Y, N, or press Enter for Yes."
+            }
+        } while ($true) 
     }
 } else {
     New-Item -ItemType Junction -Path $junctionPath -Target $modelPath
-    Write-Host "Created models junction"
+    Write-Host "Created models link"
     Write-Host "$junctionPath --> $modelPath`n"
 }
 
